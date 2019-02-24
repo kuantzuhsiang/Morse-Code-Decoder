@@ -15,9 +15,10 @@ import android.widget.ImageView;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private AudioRecord audioRecorder;
-    private static short[] audioData;
     private Handler handler = new Handler();
     private int bufferSize;
+    private boolean signalHighFlag = false;
+    private int count = 0;
 
     @Override
     @SuppressLint("ClickableViewAccessibility")
@@ -61,20 +62,61 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             if (audioRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
-                audioData = new short[bufferSize];
+                short[] audioData = new short[bufferSize];
                 audioRecorder.startRecording();
                 if (audioRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
                     audioRecorder.read(audioData, 0, bufferSize);
-//                    printRecording(audioData);
-                    handler.postDelayed(this, 25);
+                    printRecording(audioData);
+                    checkForHigh(audioData);
+                    handler.postDelayed(this, 100);
                 }
             }
         }
     };
 
-    private void printRecording(short[] data) {
-        for (int i = 0; i < data.length; i++) {
-            Log.d(TAG, i + ": " + Short.toString(data[i]));
+    private void checkForHigh(short[] data) {
+        if (Math.abs(data[0]) > 50) {
+            if (signalHighFlag) {
+                count++;
+            } else {
+                determineTypeOfSilence(count);
+                signalHighFlag = true;
+                count = 1;
+            }
+        } else {
+            if (!signalHighFlag) {
+                count++;
+            } else {
+                determineTypeOfSignal(count);
+                signalHighFlag = false;
+                count = 1;
+            }
         }
+    }
+
+    private void determineTypeOfSilence(int count) {
+        if (count <= 4) {
+            //next signal
+        } else if (count <= 12) {
+            //next letter
+        } else {
+            //next word
+        }
+    }
+
+    private void determineTypeOfSignal(int count) {
+        if (count <= 4) {
+            //dot
+        } else {
+            //dash
+        }
+    }
+
+    private void printRecording(short[] data) {
+        String text = "";
+        for (int i = 0; i < data.length; i++) {
+            text = text + " " + Short.toString(data[i]);
+        }
+        Log.d(TAG, text);
     }
 }
