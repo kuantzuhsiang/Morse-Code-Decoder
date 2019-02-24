@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                     audioRecorder.read(audioData, 0, bufferSize);
                     printRecording(audioData);
                     checkForHigh(audioData);
-                    handler.postDelayed(this, 100);
+                    handler.postDelayed(this, 10);
                 }
             }
         }
@@ -90,8 +90,9 @@ public class MainActivity extends AppCompatActivity {
             if (signalHighFlag) {
                 count++;
             } else {
-                determineTypeOfSilence(count);
-                messageWord = "";
+                Log.e(TAG, Integer.toString(count));
+
+
                 signalHighFlag = true;
                 count = 1;
             }
@@ -100,7 +101,10 @@ public class MainActivity extends AppCompatActivity {
             dash.setVisibility(View.GONE);
             if (!signalHighFlag) {
                 count++;
+                determineTypeOfSilence(count);
+                messageWord = "";
             } else {
+                Log.d(TAG, Integer.toString(count));
                 determineTypeOfSignal(count);
                 signalHighFlag = false;
                 count = 1;
@@ -112,10 +116,10 @@ public class MainActivity extends AppCompatActivity {
         if (count <= 4) {
             //next dot/dash
             Log.e(TAG, "next dot/dash");
-        } else if (count <= 12) {
+        } else if (count <= 10) {
             //next letter
             Log.e(TAG, "decode");
-            decodeLetter();
+            decodeLetter(messageWord);
             message.setText(messageText);
             messageWord = "";
         } else {
@@ -125,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void determineTypeOfSignal(int count) {
-        if (count <= 4) {
+        if (count <= 5) {
             //dot
             dot.setVisibility(View.VISIBLE);
             messageWord += ".";
@@ -136,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void decodeLetter() {
-        switch (messageWord) {
+    private void decodeLetter(String word) {
+        switch (word) {
             case ".-":
                 messageText += "A";
                 break;
@@ -246,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
                 messageText += "0";
                 break;
         }
+        Log.e(TAG, word);
     }
 
     private void printRecording(short[] data) {
